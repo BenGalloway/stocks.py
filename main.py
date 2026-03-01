@@ -54,7 +54,7 @@ def run_screener():
         time.sleep(SLEEP_BETWEEN_TICKERS)
 
         all_approved = get_all_approved(conn)
-        with open("approved_tickers.txt", "w", newline="") as f:
+        with open("approved_tickers.csv", "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(["Ticker", "Approved Date"])
             writer.writerows(all_approved)
