@@ -12,8 +12,29 @@ def setup_db():
             last_scanned DATE
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS approved (
+            ticker TEXT PRIMARY KEY,
+            approved_date DATE
+        )
+    ''')
     conn.commit()
     return conn
+
+def log_approved(ticker, conn):
+    cursor = conn.cursor()
+    today = datetime.now().strftime('%Y-%m-%d')
+    cursor.execute('''
+        INSERT INTO approved (ticker, approved_date)
+        VALUES (?, ?)
+        ON CONFLICT(ticker) DO UPDATE SET approved_date = ?
+    ''', (ticker, today, today))
+    conn.commit()
+
+def get_all_approved(conn):
+    cursor = conn.cursor()
+    cursor.execute('SELECT ticker, approved_date FROM approved ORDER BY ticker')
+    return cursor.fetchall()
 
 def can_scan_ticker(ticker, conn, cooldown_days=21):
     cursor = conn.cursor()

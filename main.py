@@ -1,6 +1,7 @@
 import time
+import csv
 from tickers import get_all_tickers
-from database import setup_db, can_scan_ticker, log_scan, reset_db
+from database import setup_db, can_scan_ticker, log_scan, reset_db, log_approved, get_all_approved
 from screener import passes_prefilter, evaluate_ticker
 
 SLEEP_BETWEEN_TICKERS = 1.5
@@ -44,12 +45,20 @@ def run_screener():
         if passed:
             print(f"🟢 {ticker} PASSED!")
             approved_tickers.append(ticker)
+            log_approved(ticker, conn)
         else:
             print(f"🔴 {ticker} failed: {reason}")
 
         log_scan(ticker, conn)
         scanned_count += 1
         time.sleep(SLEEP_BETWEEN_TICKERS)
+
+        all_approved = get_all_approved(conn)
+        with open("approved_tickers.txt", "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Ticker", "Approved Date"])
+            writer.writerows(all_approved)
+        print(f"Approved tickers exported to approved_tickers.csv")
 
     conn.close()
 
